@@ -11,8 +11,8 @@ STONERADIUS = BOARDSPACE/2
 WHITESTONE = "white"
 BLACKSTONE = "black"
 
-curser_x = None
-curser_y = None
+# curser_x = None
+# curser_y = None
 
 class Stone(object):
     def __init__(self, x, y, t):
@@ -21,13 +21,13 @@ class Stone(object):
         self.t = t
 
     def if_white(self):
-        if t == WHITESTONE:
+        print(self.t)
+        if self.t == WHITESTONE:
             return True
         else:
             return False
 
     def xx(self):
-        print("x = " + str(self.x))
         return self.x
 
     def yy(self):
@@ -36,34 +36,49 @@ class Stone(object):
 class StoneList(object):
     def __init__(self):
         self.stone_list = [[]]
-        # self.curser_x = 0
-        # self.curser_y = 0
-        # self.end = True
+        self.curser_x = 0
+        self.curser_y = 0
+        self.end = True
+        self.turn = BLACKSTONE
 
-    def addStone(self, s):
+    def isEnd(self):
+        return self.end
+
+    def get_curser_x(self):
+        return self.curser_x
+
+    def get_curser_y(self):
+        return self.curser_y
+
+    def get_turn(self):
+        return self.turn
+
+    def addStone(self, x, y):
+        s = Stone(x, y, self.turn)
         list = [s]
         if(len(self.stone_list[0]) == 0):
-        	self.stone_list[0].append(s)
+            self.stone_list[0].append(s)
         else:
-        	self.stone_list.append(list)
-        print("stone added")
-        print("new stone x:" + str(list[0].xx()))
+            self.stone_list.append(list)
+        self.end = False
+        if self.turn == BLACKSTONE:
+            self.turn = WHITESTONE
+        else:
+            self.turn = BLACKSTONE
 
     def showNext(self, x, y):
-        global curser_x
-        global curser_y
+        # global curser_x
+        # global curser_y
 
-        print(str(x))
         if(y < len(self.stone_list[x]) - 1):
-            curser_y = y + 1
+            self.curser_y = y + 1
         elif(x < len(self.stone_list) - 1):
-            curser_x = x + 1
-            curser_y = 0
+            self.curser_x = x + 1
+            self.curser_y = 0
         else:
-            curser_x = None
-            curser_y = None
-        print("curser_x" + str(curser_x) + "curser_y" + str(curser_y))
-        print(self.stone_list[x][y].xx())
+            self.curser_x = 0
+            self.curser_y = 0
+            self.end = True
         return(self.stone_list[x][y])
 
 game_go = StoneList()
@@ -109,8 +124,8 @@ class GameBoard(QWidget):
         self.press_flag = 0
     
     def paintEvent(self, QPaintEvent):
-        global curser_x
-        global curser_y
+        # global curser_x
+        # global curser_y
         p = QPainter(self)
         p.setPen(QPen(Qt.black))
 
@@ -141,35 +156,37 @@ class GameBoard(QWidget):
         p.drawRect(rect)
 
         # draw black stones
-        print("update after pressing")
-
-        p.setPen(QPen(Qt.black))
-        linearGradient = QLinearGradient(0, 0, 400, 400)
-        linearGradient.setColorAt(0.0, Qt.black)
-        p.setBrush(linearGradient)
-        while curser_x != None or curser_y != None:
+        while not game_go.isEnd():
             self.press_flag = 0
-            temp = game_go.showNext(curser_x, curser_y)
+            temp = game_go.showNext(game_go.get_curser_x(), game_go.get_curser_y())
             x = temp.xx() - 1
             y = temp.yy() - 1
-            print("sssscurser_x" + str(curser_x) + "curser_y" + str(curser_y))
+            if temp.if_white() == True:
+                p.setPen(QPen(Qt.white))
+                linearGradient = QLinearGradient(0, 0, 400, 400)
+                linearGradient.setColorAt(0.0, Qt.white)
+                p.setBrush(linearGradient)
+            else:
+                p.setPen(QPen(Qt.black))
+                linearGradient = QLinearGradient(0, 0, 400, 400)
+                linearGradient.setColorAt(0.0, Qt.black)
+                p.setBrush(linearGradient)
             rect = QRect(x*BOARDSPACE - BOARDSPACE/2 + BOARDSTART, y*BOARDSPACE - BOARDSPACE/2 + BOARDSTART, 40, 40)
             p.drawPie(rect, 0 * 16, 360 * 16)
 
     def mousePressEvent(self, event):
-        global curser_x
-        global curser_y
-        curser_x = 0
-        curser_y = 0
+        # global curser_x
+        # global curser_y
+        # curser_x = 0
+        # curser_y = 0
         x = event.x()
         y = event.y()
         # self.press_x = (int((x - BOARDSTART + BOARDSPACE/2)/BOARDSPACE))*BOARDSPACE - BOARDSPACE/2 + BOARDSTART
         # self.press_y = (int((y - BOARDSTART + BOARDSPACE/2)/BOARDSPACE))*BOARDSPACE - BOARDSPACE/2 + BOARDSTART
-        s = Stone(int((x + BOARDSPACE/2)/BOARDSPACE), int((y + BOARDSPACE/2)/BOARDSPACE), BLACKSTONE)
-        print("new stone!!!: " + str(s.xx()))
-        game_go.addStone(s)
-        curser_x = 0
-        curser_y = 0
+        # s = Stone(int((x + BOARDSPACE/2)/BOARDSPACE), int((y + BOARDSPACE/2)/BOARDSPACE), BLACKSTONE)
+        game_go.addStone(int((x + BOARDSPACE/2)/BOARDSPACE), int((y + BOARDSPACE/2)/BOARDSPACE))
+        # curser_x = 0
+        # curser_y = 0
         self.update()
 
 if __name__=='__main__':
